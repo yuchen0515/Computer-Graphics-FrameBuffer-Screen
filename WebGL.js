@@ -236,6 +236,10 @@ var transformMat = new Matrix4();
 var matStack =[];
 var u_modelMatrix;
 
+var time = 64;
+var offScreenWidth = time * 8, offScreenHeight = time * 5;
+var fbo;
+
 function pushMatrix(){
     matStack.push(new Matrix4(transformMat));
 }
@@ -245,8 +249,8 @@ function popMatrix(){
 }
 
 var textures = {};
-var imgNames = ["light-pole-broken.png", "woodfloor.jpg", "cat.png", "cube.png"];
-var objCompImgIndex = ["light-pole-broken.png", "woodfloor.jpg", "cat.png", "cube.png"];
+var imgNames = ["light-pole-broken.png", "woodfloor.jpg", "cat.png", "cube.png", ""];
+var objCompImgIndex = ["light-pole-broken.png", "woodfloor.jpg", "cat.png", "cube.png", ""];
 var texCount = 0;
 var numTextures = imgNames.length;
 
@@ -453,6 +457,10 @@ function draw(){
     drawOneObject(ground, mdlMatrix_wood, 1.0, 0.4, 0.4, 1, newViewDir);
     drawOneObject(cat, mdlMatrix_cat, 1.0, 0.4, 0.4, 2, newViewDir);
     drawOneObject(cube, mdlMatrix_cube, 1.0, 0.4, 0.4, 3, newViewDir);
+
+    mdlMatrix_cube.translate(-5.0, -1.0, 20.0);
+    mdlMatrix_cube.scale(8.0, 5.0, 0.1);
+    drawOneObject(cube, mdlMatrix_cube, 1.0, 0.4, 0.4, 4, newViewDir);
 
     //quad
     gl.useProgram(programEnvCube);
@@ -833,5 +841,32 @@ function initTexture(gl, img, imgName){
 
     texCount++;
     if( texCount == numTextures)draw();
+}
+
+
+function initFrameBuffer(gl){
+    //create and set up a texture object as the color buffer
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, offScreenWidth, offScreenHeight,
+        0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+
+    //create and setup a render buffer as the depth buffer
+    var depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 
+        offScreenWidth, offScreenHeight);
+
+    //create and setup framebuffer: linke the color and depth buffer to it
+    var frameBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, 
+        gl.TEXTURE_2D, texture, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, 
+        gl.RENDERBUFFER, depthBuffer);
+    frameBuffer.texture = texture;
+    return frameBuffer;
 }
 
