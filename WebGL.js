@@ -307,6 +307,9 @@ async function main(){
     ScreenProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     SetProgram(ScreenProgram);
 
+    CubeProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
+    SetProgram(CubeProgram);
+
     program = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     SetProgram(program);
 
@@ -426,6 +429,8 @@ function draw(){
        cameraY + newViewDir.elements[1], 
        cameraZ + newViewDir.elements[2], 
        0, 1, 0);
+    //viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, 0, 0, 0, 0, 1, 0);
+    //viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, cameraX+5, cameraY, cameraZ+5, 0, 1, 0);
 
     viewMatrixRotationOnly.elements[12] = 0; //ignore translation
     viewMatrixRotationOnly.elements[13] = 0;
@@ -456,10 +461,10 @@ function draw(){
 
     //drawOneObject(lamp, mdlMatrix, 1.0, 0.4, 0.4, 0);
     //drawOneObject(ground, mdlMatrix, 1.0, 0.4, 0.4, 1);
-    drawOneObject(program, lamp, mdlMatrix_lamp, newViewDir, 1);
-    drawOneObject(program, ground, mdlMatrix_wood, newViewDir, 1);
-    drawOneObject(program, cat, mdlMatrix_cat, newViewDir, 1);
-    drawOneObject(program, cube, mdlMatrix_cube, newViewDir, 1);
+    drawOneObject(lamp, mdlMatrix_lamp, 0, newViewDir, cameraX, cameraY, cameraZ, 1);
+    drawOneObject(ground, mdlMatrix_wood, 1, newViewDir, cameraX, cameraY, cameraZ, 1);
+    drawOneObject(cat, mdlMatrix_cat, 2, newViewDir, cameraX, cameraY, cameraZ, 1);
+    drawOneObject(cube, mdlMatrix_cube, 3, newViewDir, cameraX, cameraY, cameraZ, 1);
 
     //quad
     gl.useProgram(programEnvCube);
@@ -501,7 +506,7 @@ function draw(){
 //mdlMatrix: the model matrix without mouse rotation
 //colorR, G, B: object color
 //function drawOneObject(obj, mdlMatrix, colorR, colorG, colorB, index){
-function drawOneObject(program, obj, mdlMatrix, index, newViewDir, IsOnScreen){
+function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, cameraZ, IsOnScreen){
 
     mvpMatrix = new Matrix4();
     normalMatrix = new Matrix4();
@@ -557,7 +562,7 @@ function drawOneObject(program, obj, mdlMatrix, index, newViewDir, IsOnScreen){
         if (IsOnScreen != 2)
             gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
         else
-            gl.bindTexture(gl.TEXTURE_2D, fbo.texture);
+            gl.bindTexture(gl.TEXTURE_2D, fbo.texture); 
 
         gl.uniform1i(program.u_Sampler0, 0);
 
