@@ -250,6 +250,8 @@ var objCompImgIndex = ["light-pole-broken.png", "woodfloor.jpg", "cat.png", "cub
 var texCount = 0;
 var numTextures = imgNames.length;
 
+var offScreenWidth = 2048, offScreenHeight = 2048;
+var fbo;
 
 async function main(){
     canvas = document.getElementById('webgl');
@@ -833,5 +835,33 @@ function initTexture(gl, img, imgName){
 
     texCount++;
     if( texCount == numTextures)draw();
+}
+
+
+
+function initFrameBuffer(gl){
+    //create and set up a texture object as the color buffer
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, offScreenWidth, offScreenHeight,
+        0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+
+    //create and setup a render buffer as the depth buffer
+    var depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 
+        offScreenWidth, offScreenHeight);
+
+    //create and setup framebuffer: linke the color and depth buffer to it
+    var frameBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, 
+        gl.TEXTURE_2D, texture, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, 
+        gl.RENDERBUFFER, depthBuffer);
+    frameBuffer.texture = texture;
+    return frameBuffer;
 }
 
