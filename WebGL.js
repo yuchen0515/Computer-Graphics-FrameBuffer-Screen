@@ -253,6 +253,26 @@ var numTextures = imgNames.length;
 var offScreenWidth = 2048, offScreenHeight = 2048;
 var fbo;
 
+function SetProgram(program){
+    gl.useProgram(program);
+
+    program.a_Position = gl.getAttribLocation(program, 'a_Position'); 
+    program.a_TexCoord = gl.getAttribLocation(program, 'a_TexCoord'); 
+    program.a_Normal = gl.getAttribLocation(program, 'a_Normal'); 
+    program.u_MvpMatrix = gl.getUniformLocation(program, 'u_MvpMatrix'); 
+    program.u_modelMatrix = gl.getUniformLocation(program, 'u_modelMatrix'); 
+    program.u_normalMatrix = gl.getUniformLocation(program, 'u_normalMatrix');
+    program.u_LightPosition = gl.getUniformLocation(program, 'u_LightPosition');
+    program.u_ViewPosition = gl.getUniformLocation(program, 'u_ViewPosition');
+    program.u_Ka = gl.getUniformLocation(program, 'u_Ka'); 
+    program.u_Kd = gl.getUniformLocation(program, 'u_Kd');
+    program.u_Ks = gl.getUniformLocation(program, 'u_Ks');
+    program.u_shininess = gl.getUniformLocation(program, 'u_shininess');
+    //program.u_Color = gl.getUniformLocation(program, 'u_Color'); 
+    program.u_Sampler0 = gl.getUniformLocation(program, "u_Sampler")
+
+}
+
 async function main(){
     canvas = document.getElementById('webgl');
     gl = canvas.getContext('webgl2');
@@ -284,25 +304,12 @@ async function main(){
     cubeMapTex = initCubeTexture("pos-x.jpg", "neg-x.jpg", "pos-y.jpg", "neg-y.jpg",
         "pos-z.jpg", "neg-z.jpg", 512, 512)
 
+    ScreenProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
+    SetProgram(ScreenProgram);
 
     program = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
+    SetProgram(program);
 
-    gl.useProgram(program);
-
-    program.a_Position = gl.getAttribLocation(program, 'a_Position'); 
-    program.a_TexCoord = gl.getAttribLocation(program, 'a_TexCoord'); 
-    program.a_Normal = gl.getAttribLocation(program, 'a_Normal'); 
-    program.u_MvpMatrix = gl.getUniformLocation(program, 'u_MvpMatrix'); 
-    program.u_modelMatrix = gl.getUniformLocation(program, 'u_modelMatrix'); 
-    program.u_normalMatrix = gl.getUniformLocation(program, 'u_normalMatrix');
-    program.u_LightPosition = gl.getUniformLocation(program, 'u_LightPosition');
-    program.u_ViewPosition = gl.getUniformLocation(program, 'u_ViewPosition');
-    program.u_Ka = gl.getUniformLocation(program, 'u_Ka'); 
-    program.u_Kd = gl.getUniformLocation(program, 'u_Kd');
-    program.u_Ks = gl.getUniformLocation(program, 'u_Ks');
-    program.u_shininess = gl.getUniformLocation(program, 'u_shininess');
-    //program.u_Color = gl.getUniformLocation(program, 'u_Color'); 
-    program.u_Sampler0 = gl.getUniformLocation(program, "u_Sampler")
 
     /////3D model light
     response = await fetch('light-pole.obj');
