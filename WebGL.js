@@ -226,6 +226,7 @@ var lamp  = [];
 var lampScale = 0.05;
 var ground = [];
 var cat = [];
+var screen = [];
 
 var cube = [];
 var cubeObj = [];
@@ -392,6 +393,17 @@ async function main(){
     imagecube.onload = function(){initTexture(gl, imagecube, "cubeTex");};
     imagecube.src = "cube.png";
 
+    response = await fetch('screen.obj');
+    text = await response.text();
+    obj = parseOBJ(text);
+    for( let i=0; i < obj.geometries.length; i ++ ){
+      let o = initVertexBufferForLaterUse(gl, 
+                                          obj.geometries[i].data.position,
+                                          obj.geometries[i].data.normal, 
+                                          obj.geometries[i].data.texcoord);
+      screen.push(o);
+    }
+
 
     draw();//draw it once before mouse move
 
@@ -402,16 +414,7 @@ async function main(){
 }
 
 
-/////Call drawOneObject() here to draw all object one by one 
-////   (setup the model matrix and color to draw)
-function draw(){
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.0, 0.0, 0.0 ,1); 
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
-    gl.enable(gl.DEPTH_TEST);
-
-    gl.useProgram(program);
-
+function draw_rep(program, cameraX, cameraY, cameraZ, IsCube){
     let rotateMatrix = new Matrix4();
     rotateMatrix.setRotate(angleY, 1, 0, 0);//for mouse rotation
     rotateMatrix.rotate(angleX, 0, 1, 0);//for mouse rotation
@@ -442,6 +445,7 @@ function draw(){
     let mdlMatrix_wood = new Matrix4(); 
     let mdlMatrix_cat = new Matrix4(); 
     let mdlMatrix_cube = new Matrix4(); 
+    let mdlMatrix_cube2 = new Matrix4(); 
 
     //mvpMatrix.setPerspective(30, 1, 1, 100);
     //mvpMatrix.setPerspective(30, 1, 1, 100);
@@ -459,12 +463,20 @@ function draw(){
     mdlMatrix_cube.translate(9.0, 12.0, 100.0);
     mdlMatrix_cube.scale(5.0, 5.0, 5.0);
 
+    mdlMatrix_cube2.translate(0.0, 15.0, 150.0);
+    mdlMatrix_cube2.scale(30.0, 15.0, 5.0);
+
+    if (IsCube){
+        drawOneObject(screen, mdlMatrix_cube2, -1, newViewDir, cameraX, cameraY, cameraZ);
+        return;
+    }
+
     //drawOneObject(lamp, mdlMatrix, 1.0, 0.4, 0.4, 0);
     //drawOneObject(ground, mdlMatrix, 1.0, 0.4, 0.4, 1);
-    drawOneObject(lamp, mdlMatrix_lamp, 0, newViewDir, cameraX, cameraY, cameraZ, 1);
-    drawOneObject(ground, mdlMatrix_wood, 1, newViewDir, cameraX, cameraY, cameraZ, 1);
-    drawOneObject(cat, mdlMatrix_cat, 2, newViewDir, cameraX, cameraY, cameraZ, 1);
-    drawOneObject(cube, mdlMatrix_cube, 3, newViewDir, cameraX, cameraY, cameraZ, 1);
+    drawOneObject(lamp, mdlMatrix_lamp, 0, newViewDir, cameraX, cameraY, cameraZ);
+    drawOneObject(ground, mdlMatrix_wood, 1, newViewDir, cameraX, cameraY, cameraZ);
+    drawOneObject(cat, mdlMatrix_cat, 2, newViewDir, cameraX, cameraY, cameraZ);
+    drawOneObject(cube, mdlMatrix_cube, 3, newViewDir, cameraX, cameraY, cameraZ);
 
     //quad
     gl.useProgram(programEnvCube);
@@ -484,20 +496,35 @@ function draw(){
     initAttributeVariable(gl, programEnvCube.a_Position, quadObj.vertexBuffer);
     gl.drawArrays(gl.TRIANGLES, 0, quadObj.numVertices);
 
+}
 
-    
-    //var LightPosition = 1.0 * 1.4; 
-    //mdlMatrix4.translate(LightPosition, LightPosition, LightPosition*2);
-    //mdlMatrix4.scale(0.1, 0.1, 0.05);
-    //mdlMatrix4 = program.u_LightPosition;
-    //gl.uniform3f(program.u_LightPosition, 1, 1, 2);
-    //drawOneObject(cube, mdlMatrix4, 1.0, 1.0, 1.0);
+/////Call drawOneObject() here to draw all object one by one 
+////   (setup the model matrix and color to draw)
+function draw(){
+    fbo = initFrameBuffer(gl);
+    gl.useProgram(ScreenProgram);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
-    //gl.useProgram(program);
-    //u_modelMatrix = gl.getUniformLocation(gl.getParameter(gl.CURRENT_PROGRAM), 'u_modelMatrix');
+    gl.viewport(0, 0, offScreenWidth, offScreenHeight);
+    gl.clearColor(0.0, 0.0, 0.0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
 
-    //mdlMatrix.scale(1.5, 0.25, 1.5);
-    //mdlMatrix.scale(2, 1, 2);
+    draw_rep(ScreenProgram, cameraX, cameraY, cameraZ+100, 0);
+
+
+    gl.useProgram(CubeProgram);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.4,0.4,0.4,1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+
+    draw_rep(CubeProgram, cameraX, cameraY, cameraZ, 1);
+
+    gl.useProgram(program);
+    draw_rep(program, cameraX, cameraY, cameraZ, 0);
+
 
 
 }
@@ -506,7 +533,7 @@ function draw(){
 //mdlMatrix: the model matrix without mouse rotation
 //colorR, G, B: object color
 //function drawOneObject(obj, mdlMatrix, colorR, colorG, colorB, index){
-function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, cameraZ, IsOnScreen){
+function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, cameraZ){
 
     mvpMatrix = new Matrix4();
     normalMatrix = new Matrix4();
@@ -559,10 +586,10 @@ function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, came
 
         gl.activeTexture(gl.TEXTURE0);
 
-        if (IsOnScreen != 2)
-            gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
-        else
+        if (index == -1)
             gl.bindTexture(gl.TEXTURE_2D, fbo.texture); 
+        else
+            gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
 
         gl.uniform1i(program.u_Sampler0, 0);
 
