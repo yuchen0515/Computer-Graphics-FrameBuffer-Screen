@@ -305,12 +305,6 @@ async function main(){
     cubeMapTex = initCubeTexture("pos-x.jpg", "neg-x.jpg", "pos-y.jpg", "neg-y.jpg",
         "pos-z.jpg", "neg-z.jpg", 512, 512)
 
-    ScreenProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
-    SetProgram(ScreenProgram);
-
-    CubeProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
-    SetProgram(CubeProgram);
-
     program = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     SetProgram(program);
 
@@ -414,10 +408,13 @@ async function main(){
 }
 
 
-function draw_rep(program, cameraX, cameraY, cameraZ, IsCube){
+function draw_rep(cameraX, cameraY, cameraZ, IsCube, IsOffScreen){
     let rotateMatrix = new Matrix4();
-    rotateMatrix.setRotate(angleY, 1, 0, 0);//for mouse rotation
-    rotateMatrix.rotate(angleX, 0, 1, 0);//for mouse rotation
+    if (IsOffScreen == 0){
+        rotateMatrix.setRotate(angleY, 1, 0, 0);//for mouse rotation
+        rotateMatrix.rotate(angleX, 0, 1, 0);//for mouse rotation
+    }else
+        rotateMatrix.setIdentity;
     var viewDir= new Vector3([cameraDirX, cameraDirY, cameraDirZ]);
     //var viewDir= new Vector3([1, 0, cameraDirZ]);
     var newViewDir = rotateMatrix.multiplyVector3(viewDir);
@@ -428,10 +425,10 @@ function draw_rep(program, cameraX, cameraY, cameraZ, IsCube){
     var viewMatrixRotationOnly = new Matrix4();
 
     viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, 
-       cameraX + newViewDir.elements[0], 
-       cameraY + newViewDir.elements[1], 
-       cameraZ + newViewDir.elements[2], 
-       0, 1, 0);
+        cameraX + newViewDir.elements[0], 
+        cameraY + newViewDir.elements[1], 
+        cameraZ + newViewDir.elements[2], 
+        0, 1, 0);
     //viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, 0, 0, 0, 0, 1, 0);
     //viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, cameraX+5, cameraY, cameraZ+5, 0, 1, 0);
 
@@ -468,7 +465,6 @@ function draw_rep(program, cameraX, cameraY, cameraZ, IsCube){
 
     if (IsCube){
         drawOneObject(screen, mdlMatrix_cube2, -1, newViewDir, cameraX, cameraY, cameraZ);
-        return;
     }
 
     //drawOneObject(lamp, mdlMatrix, 1.0, 0.4, 0.4, 0);
@@ -502,7 +498,7 @@ function draw_rep(program, cameraX, cameraY, cameraZ, IsCube){
 ////   (setup the model matrix and color to draw)
 function draw(){
     fbo = initFrameBuffer(gl);
-    gl.useProgram(ScreenProgram);
+    gl.useProgram(program);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
     gl.viewport(0, 0, offScreenWidth, offScreenHeight);
@@ -510,20 +506,17 @@ function draw(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
-    draw_rep(ScreenProgram, cameraX, cameraY, cameraZ+100, 0);
+    draw_rep(cameraX, cameraY, cameraZ, 0, 1);
 
 
-    gl.useProgram(CubeProgram);
+    gl.useProgram(program);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.4,0.4,0.4,1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
-    draw_rep(CubeProgram, cameraX, cameraY, cameraZ, 1);
-
-    gl.useProgram(program);
-    draw_rep(program, cameraX, cameraY, cameraZ, 0);
+    draw_rep(cameraX, cameraY, cameraZ, 1, 0);
 
 
 
@@ -558,10 +551,10 @@ function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, came
     //mvpMatrix.lookAt(cameraX, cameraY, cameraZ, cameraX+5, cameraY, cameraZ+5, 0, 1, 0);
     //
     mvpMatrix.lookAt(cameraX, cameraY, cameraZ, 
-       cameraX + newViewDir.elements[0], 
-       cameraY + newViewDir.elements[1], 
-       cameraZ + newViewDir.elements[2], 
-       0, 1, 0);
+        cameraX + newViewDir.elements[0], 
+        cameraY + newViewDir.elements[1], 
+        cameraZ + newViewDir.elements[2], 
+        0, 1, 0);
 
     mvpMatrix.multiply(modelMatrix);
 
@@ -586,10 +579,11 @@ function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, came
 
         gl.activeTexture(gl.TEXTURE0);
 
-        if (index == -1)
+        if (index == -1){
             gl.bindTexture(gl.TEXTURE_2D, fbo.texture); 
-        else
+        }else{
             gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
+        }
 
         gl.uniform1i(program.u_Sampler0, 0);
 
