@@ -307,9 +307,6 @@ async function main(){
     ScreenProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     SetProgram(ScreenProgram);
 
-    CubeProgram = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
-    SetProgram(CubeProgram);
-
     program = compileShader(gl, VSHADER_SOURCE, FSHADER_SOURCE);
     SetProgram(program);
 
