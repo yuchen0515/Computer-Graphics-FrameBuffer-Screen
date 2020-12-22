@@ -429,8 +429,6 @@ function draw(){
        cameraY + newViewDir.elements[1], 
        cameraZ + newViewDir.elements[2], 
        0, 1, 0);
-    //viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, 0, 0, 0, 0, 1, 0);
-    //viewMatrixRotationOnly.lookAt(cameraX, cameraY, cameraZ, cameraX+5, cameraY, cameraZ+5, 0, 1, 0);
 
     viewMatrixRotationOnly.elements[12] = 0; //ignore translation
     viewMatrixRotationOnly.elements[13] = 0;
@@ -461,10 +459,10 @@ function draw(){
 
     //drawOneObject(lamp, mdlMatrix, 1.0, 0.4, 0.4, 0);
     //drawOneObject(ground, mdlMatrix, 1.0, 0.4, 0.4, 1);
-    drawOneObject(lamp, mdlMatrix_lamp, 1.0, 0.4, 0.4, 0, newViewDir);
-    drawOneObject(ground, mdlMatrix_wood, 1.0, 0.4, 0.4, 1, newViewDir);
-    drawOneObject(cat, mdlMatrix_cat, 1.0, 0.4, 0.4, 2, newViewDir);
-    drawOneObject(cube, mdlMatrix_cube, 1.0, 0.4, 0.4, 3, newViewDir);
+    drawOneObject(program, lamp, mdlMatrix_lamp, newViewDir, 1);
+    drawOneObject(program, ground, mdlMatrix_wood, newViewDir, 1);
+    drawOneObject(program, cat, mdlMatrix_cat, newViewDir, 1);
+    drawOneObject(program, cube, mdlMatrix_cube, newViewDir, 1);
 
     //quad
     gl.useProgram(programEnvCube);
@@ -506,7 +504,7 @@ function draw(){
 //mdlMatrix: the model matrix without mouse rotation
 //colorR, G, B: object color
 //function drawOneObject(obj, mdlMatrix, colorR, colorG, colorB, index){
-function drawOneObject(obj, mdlMatrix, colorR, colorG, colorB, index, newViewDir){
+function drawOneObject(program, obj, mdlMatrix, index, newViewDir, IsOnScreen){
 
     mvpMatrix = new Matrix4();
     normalMatrix = new Matrix4();
@@ -559,7 +557,11 @@ function drawOneObject(obj, mdlMatrix, colorR, colorG, colorB, index, newViewDir
 
         gl.activeTexture(gl.TEXTURE0);
 
-        gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
+        if (IsOnScreen != 2)
+            gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
+        else
+            gl.bindTexture(gl.TEXTURE_2D, fbo.texture);
+
         gl.uniform1i(program.u_Sampler0, 0);
 
         initAttributeVariable(gl, program.a_Position, obj[i].vertexBuffer);
