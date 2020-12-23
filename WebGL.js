@@ -448,11 +448,6 @@ function draw_rep(cameraX, cameraY, cameraZ, IsCube, IsOffScreen){
     let mdlMatrix_cube = new Matrix4(); 
     let mdlMatrix_cube2 = new Matrix4(); 
 
-    //mvpMatrix.setPerspective(30, 1, 1, 100);
-    //mvpMatrix.setPerspective(30, 1, 1, 100);
-    //mdlMatrix.setRotate(angleX, 0.0, 1.0, 0.0);
-    //mdlMatrix.setScale(1.0, 1.0, 1.0);
-    //mdlMatrix.scale(0.1, 0.1, 0.1);
     mdlMatrix_lamp.translate(16.0, 3.0, 100.0);
     mdlMatrix_lamp.rotate(90, 0, 1, 0);
     mdlMatrix_wood.translate(6.0, -9.0, 100.0);
@@ -513,7 +508,8 @@ function draw(){
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
-    draw_rep(cameraX, cameraY, cameraZ, 0, 1);
+    //draw_rep(cameraX, cameraY, cameraZ, 0, 1);
+    draw_rep(3, 3, 3, 0, 1);
 
 
     gl.useProgram(program);
@@ -524,9 +520,6 @@ function draw(){
     gl.enable(gl.DEPTH_TEST);
 
     draw_rep(cameraX, cameraY, cameraZ, 1, 0);
-
-
-
 }
 
 //obj: the object components
