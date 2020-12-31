@@ -413,12 +413,8 @@ function draw_rep(cameraX, cameraY, cameraZ, IsCube, IsOffScreen){
     if (IsOffScreen == 0){
         rotateMatrix.setRotate(angleY, 1, 0, 0);//for mouse rotation
         rotateMatrix.rotate(angleX, 0, 1, 0);//for mouse rotation
-    }else{
-        rotateMatrix.setIdentity();
-        //rotateMatrix.setRotate(90, 0, 0, 0);//for mouse rotation
-        var angle_time = 0;
-        rotateMatrix.rotate(90 * angle_time, 0, 1, 0);//for mouse rotation
-    }
+    }else
+        rotateMatrix.setIdentity;
     var viewDir= new Vector3([cameraDirX, cameraDirY, cameraDirZ]);
     //var viewDir= new Vector3([1, 0, cameraDirZ]);
     var newViewDir = rotateMatrix.multiplyVector3(viewDir);
@@ -460,9 +456,7 @@ function draw_rep(cameraX, cameraY, cameraZ, IsCube, IsOffScreen){
     mdlMatrix_cube.scale(5.0, 5.0, 5.0);
 
     mdlMatrix_cube2.translate(0.0, 15.0, 150.0);
-    mdlMatrix_cube2.scale(30.0, 30.0, 0.5);
-    mdlMatrix_cube2.rotate(90, 1, 0, 0);
-
+    mdlMatrix_cube2.scale(30.0, 15.0, 5.0);
 
     if (IsCube){
         drawOneObject(screen, mdlMatrix_cube2, -1, newViewDir, cameraX, cameraY, cameraZ);
@@ -475,10 +469,9 @@ function draw_rep(cameraX, cameraY, cameraZ, IsCube, IsOffScreen){
     drawOneObject(cat, mdlMatrix_cat, 2, newViewDir, cameraX, cameraY, cameraZ);
     drawOneObject(cube, mdlMatrix_cube, 3, newViewDir, cameraX, cameraY, cameraZ);
 
-
-
     //quad
     gl.useProgram(programEnvCube);
+
 
 
     gl.depthFunc(gl.LEQUAL);
@@ -575,15 +568,15 @@ function drawOneObject(obj, mdlMatrix, index, newViewDir, cameraX, cameraY, came
     gl.uniformMatrix4fv(program.u_modelMatrix, false, modelMatrix.elements);
     gl.uniformMatrix4fv(program.u_normalMatrix, false, normalMatrix.elements);
 
-    gl.activeTexture(gl.TEXTURE0);
-
-    if (index == -1)
-        gl.bindTexture(gl.TEXTURE_2D, fbo.texture); 
-    else
-        gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
     for( let i=0; i < obj.length; i ++ ){
 
+        gl.activeTexture(gl.TEXTURE0);
 
+        if (index == -1){
+            gl.bindTexture(gl.TEXTURE_2D, fbo.texture); 
+        }else{
+            gl.bindTexture(gl.TEXTURE_2D, textures[objCompImgIndex[index]]);
+        }
 
         gl.uniform1i(program.u_Sampler0, 0);
 
