@@ -3,7 +3,7 @@
 
 ## Demo
 
-![](https://i.imgur.com/l9rhUrG.gif)
+![](https://github.com/yuchen0515/Computer-Graphics-FrameBuffer-Screen/blob/master/cg-framebuffer.gif?raw=true)
 
 * Using "**FrameBuffer**" to store the "output" and then reflect to a screen box.
 * Draw a 3D object with a nice texture mapping via WebGL.
